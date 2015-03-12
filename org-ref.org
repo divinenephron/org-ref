@@ -112,6 +112,7 @@ There are some variables needed later to tell this library where you store your 
   :type 'string
   :group 'org-ref)
 
+;;;###autoload
 (defcustom org-ref-insert-cite-key
   "C-c ]"
   "Keyboard shortcut to insert a citation."
@@ -151,7 +152,7 @@ There are some variables needed later to tell this library where you store your 
   :type 'function
   :group 'org-ref)
 
-
+;;;###autoload
 (defcustom org-ref-insert-cite-function
   'org-ref-helm-insert-cite-link
   "Function to call to insert citation links. The default is `org-ref-helm-insert-cite-link' which uses `helm-bibtex'. org-ref modifies helm-bibtex a little bit to give org-mode citations, and to reorder default actions. You may use `org-ref-insert-cite-link' if you like the reftex interface."
@@ -250,6 +251,7 @@ We setup reftex here. We use a custom insert cite link function defined here: [[
     (setq reftex-cite-format 'org))
 
 ;; define key for inserting citations
+;;;###autoload
 (define-key org-mode-map
   (kbd org-ref-insert-cite-key)
   org-ref-insert-cite-function)
