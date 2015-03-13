@@ -405,76 +405,76 @@ ref:test
 label:test
 
 #+BEGIN_SRC emacs-lisp :tangle org-ref.el
-  (defcustom org-ref-colorize-links
-    t
-    "When non-nil, change colors of links"
-    :group 'org-ref)
+(defcustom org-ref-colorize-links
+  t
+  "When non-nil, change colors of links"
+  :group 'org-ref)
 
 
-  (defcustom org-ref-cite-color
-    "forest green"
-    "Color of cite like links"
-    :group 'org-ref)
+(defcustom org-ref-cite-color
+  "forest green"
+  "Color of cite like links"
+  :group 'org-ref)
 
 
-  (defcustom org-ref-ref-color
-    "dark red"
-    "Color of ref like links"
-    :group 'org-ref)
+(defcustom org-ref-ref-color
+  "dark red"
+  "Color of ref like links"
+  :group 'org-ref)
 
 
-  (defcustom org-ref-label-color
-    "dark magenta"
-    "Color of label links"
-    :group 'org-ref)
+(defcustom org-ref-label-color
+  "dark magenta"
+  "Color of label links"
+  :group 'org-ref)
 
 
-  (defvar org-ref-cite-re nil
-   "regexp for cite links")
+(defvar org-ref-cite-re nil
+ "regexp for cite links")
 
 
-  (setq org-ref-cite-re
-        (concat "\\(" (mapconcat
-                       (lambda (x)
-                         (replace-regexp-in-string "\*" "\\\\*" x)
-                         )
-                       org-ref-cite-types "\\|") "\\)"
-    ":\\([a-zA-Z0-9-_:]*,?\\)*"))
+(setq org-ref-cite-re
+      (concat "\\(" (mapconcat
+                     (lambda (x)
+                       (replace-regexp-in-string "\*" "\\\\*" x)
+                       )
+                     org-ref-cite-types "\\|") "\\)"
+  ":\\([a-zA-Z0-9-_:]*,?\\)*"))
 
 
-  (defvar org-ref-label-re "label:\\([a-zA-Z0-9-_:]*,?\\)*"
-    "regexp for label links")
+(defvar org-ref-label-re "label:\\([a-zA-Z0-9-_:]*,?\\)*"
+  "regexp for label links")
 
 
-  (defvar org-ref-ref-re "ref:\\([a-zA-Z0-9-_:]*,?\\)*"
-    "regexp for ref link")
+(defvar org-ref-ref-re "ref:\\([a-zA-Z0-9-_:]*,?\\)*"
+  "regexp for ref link")
 
 
-  (defface org-ref-cite-face
-    `((t (:inherit org-link :foreground ,org-ref-cite-color)))
-    "Color for cite-like links in org-ref.")
+(defface org-ref-cite-face
+  `((t (:inherit org-link :foreground ,org-ref-cite-color)))
+  "Color for cite-like links in org-ref.")
 
 
-  (defface org-ref-label-face
-    `((t (:inherit org-link :foreground ,org-ref-label-color)))
-    "Color for ref links in org-ref.")
+(defface org-ref-label-face
+  `((t (:inherit org-link :foreground ,org-ref-label-color)))
+  "Color for ref links in org-ref.")
 
 
-  (defface org-ref-ref-face
-    `((t (:inherit org-link :foreground ,org-ref-ref-color)))
-    "Face for ref links in org-ref.")
+(defface org-ref-ref-face
+  `((t (:inherit org-link :foreground ,org-ref-ref-color)))
+  "Face for ref links in org-ref.")
 
 
-  (defun org-ref-colorize-links ()
-    "Colorize org-ref links."
-    (hi-lock-mode 1)
-    (highlight-regexp org-ref-cite-re 'org-ref-cite-face)
-    (highlight-regexp org-ref-label-re 'org-ref-label-face)
-    (highlight-regexp org-ref-ref-re 'org-ref-ref-face))
+(defun org-ref-colorize-links ()
+  "Colorize org-ref links."
+  (hi-lock-mode 1)
+  (highlight-regexp org-ref-cite-re 'org-ref-cite-face)
+  (highlight-regexp org-ref-label-re 'org-ref-label-face)
+  (highlight-regexp org-ref-ref-re 'org-ref-ref-face))
 
 
-  (when org-ref-colorize-links
-    (add-hook 'org-mode-hook 'org-ref-colorize-links))
+(when org-ref-colorize-links
+  (add-hook 'org-mode-hook 'org-ref-colorize-links))
 #+END_SRC
 
 #+RESULTS:
@@ -787,64 +787,63 @@ Now, we map over the whole list of keys, and the whole bibliography, formatted a
 We use a link for the bibliography so that we can click on it to open the bibliography file. The link may have more than one bibliography file in it, separated by commas. Clicking opens the file under the cursor. The bibliographies should be full filenames with the bib extension. Clicking on this link makes reftex-default-bibliography local and sets it to the list of files in the link. We need this to use reftex's searching capability.
 
 #+BEGIN_SRC emacs-lisp :tangle org-ref.el
-  (org-add-link-type "bibliography"
-                     ;; this code is run on clicking. The bibliography
-                     ;; may contain multiple files. this code finds the
-                     ;; one you clicked on and opens it.
-                     (lambda (link-string)
-                         ;; get link-string boundaries
-                         ;; we have to go to the beginning of the line, and then search forward
+(org-add-link-type "bibliography"
+                   ;; this code is run on clicking. The bibliography
+                   ;; may contain multiple files. this code finds the
+                   ;; one you clicked on and opens it.
+                   (lambda (link-string)
+                       ;; get link-string boundaries
+                       ;; we have to go to the beginning of the line, and then search forward
 
-                       (let* ((bibfile)
-                              ;; object is the link you clicked on
-                              (object (org-element-context))
-                              (link-string-beginning)
-                              (link-string-end)
-                              (key-end)
-                              (key-beginning))
+                     (let* ((bibfile)
+                            ;; object is the link you clicked on
+                            (object (org-element-context))
+                            (link-string-beginning)
+                            (link-string-end)
+                            (key-end)
+                            (key-beginning))
 
+                     (save-excursion
+                       (goto-char (org-element-property :begin object))
+                       (search-forward link-string nil nil 1)
+                       (setq link-string-beginning (match-beginning 0))
+                       (setq link-string-end (match-end 0)))
+
+                       ;; We set the reftex-default-bibliography
+                       ;; here. it should be a local variable only in
+                       ;; the current buffer. We need this for using
+                       ;; reftex to do citations.
+                       (set (make-local-variable 'reftex-default-bibliography)
+                            (split-string (org-element-property :path object) ","))
+
+                       ;; now if we have comma separated bibliographies
+                       ;; we find the one clicked on. we want to
+                       ;; search forward to next comma from point
                        (save-excursion
-                         (goto-char (org-element-property :begin object))
-                         (search-forward link-string nil nil 1)
-                         (setq link-string-beginning (match-beginning 0))
-                         (setq link-string-end (match-end 0)))
+                         (if (search-forward "," link-string-end 1 1)
+                             (setq key-end (- (match-end 0) 1)) ; we found a match
+                           (setq key-end (point)))) ; no comma found so take the point
+                       ;; and backward to previous comma from point
+                       (save-excursion
+                         (if (search-backward "," link-string-beginning 1 1)
+                             (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
+                           (setq key-beginning (point)))) ; no match found
+                       ;; save the key we clicked on.
+                       (setq bibfile (org-ref-strip-string (buffer-substring key-beginning key-end)))
+                       (find-file bibfile))) ; open file on click
 
-                         ;; We set the reftex-default-bibliography
-                         ;; here. it should be a local variable only in
-                         ;; the current buffer. We need this for using
-                         ;; reftex to do citations.
-                         (set (make-local-variable 'reftex-default-bibliography)
-                              (split-string (org-element-property :path object) ","))
-
-                         ;; now if we have comma separated bibliographies
-                         ;; we find the one clicked on. we want to
-                         ;; search forward to next comma from point
-                         (save-excursion
-                           (if (search-forward "," link-string-end 1 1)
-                               (setq key-end (- (match-end 0) 1)) ; we found a match
-                             (setq key-end (point)))) ; no comma found so take the point
-                         ;; and backward to previous comma from point
-                         (save-excursion
-                           (if (search-backward "," link-string-beginning 1 1)
-                               (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
-                             (setq key-beginning (point)))) ; no match found
-                         ;; save the key we clicked on.
-                         (setq bibfile (org-ref-strip-string (buffer-substring key-beginning key-end)))
-                         (find-file bibfile))) ; open file on click
-
-                       ;; formatting code
-                     (lambda (keyword desc format)
-                       (cond
-                        ((eq format 'org) (org-ref-get-org-bibliography))
-                        ((eq format 'ascii) (org-ref-get-ascii-bibliography))
-                        ((eq format 'html) (org-ref-get-html-bibliography))
-                        ((eq format 'latex)
-                         ;; write out the latex bibliography command
-                         (format "\\bibliography{%s}" (replace-regexp-in-string  "\\.bib" "" (mapconcat 'identity
-                                                                                                        (mapcar 'expand-file-name
-                                                                                                                (split-string keyword ","))
-                                                                                                        ",")))))))
-
+                     ;; formatting code
+                   (lambda (keyword desc format)
+                     (cond
+                      ((eq format 'org) (org-ref-get-org-bibliography))
+                      ((eq format 'ascii) (org-ref-get-ascii-bibliography))
+                      ((eq format 'html) (org-ref-get-html-bibliography))
+                      ((eq format 'latex)
+                       ;; write out the latex bibliography command
+                       (format "\\bibliography{%s}" (replace-regexp-in-string  "\\.bib" "" (mapconcat 'identity
+                                                                                                      (mapcar 'expand-file-name
+                                                                                                              (split-string keyword ","))
+                                                                                                      ",")))))))
 #+END_SRC
 
 Believe it or not, sometimes it makes sense /not/ to include the bibliography in a document (e.g. when you are required to submit references as a separate file). To generate the references,  in another file, you must make a little tex file with these contents, and then compile it.
@@ -856,74 +855,74 @@ Believe it or not, sometimes it makes sense /not/ to include the bibliography in
 Here, we make a =nobibliography= link that acts like the bibliography, enables creation of the bbl file, but does not put an actual bibliography in the file.
 
 #+BEGIN_SRC emacs-lisp :tangle org-ref.el
-  (org-add-link-type "nobibliography"
-                     ;; this code is run on clicking. The bibliography
-                     ;; may contain multiple files. this code finds the
-                     ;; one you clicked on and opens it.
-                     (lambda (link-string)
-                         ;; get link-string boundaries
-                         ;; we have to go to the beginning of the line, and then search forward
+(org-add-link-type "nobibliography"
+                   ;; this code is run on clicking. The bibliography
+                   ;; may contain multiple files. this code finds the
+                   ;; one you clicked on and opens it.
+                   (lambda (link-string)
+                       ;; get link-string boundaries
+                       ;; we have to go to the beginning of the line, and then search forward
 
-                       (let* ((bibfile)
-                              ;; object is the link you clicked on
-                              (object (org-element-context))
+                     (let* ((bibfile)
+                            ;; object is the link you clicked on
+                            (object (org-element-context))
 
-                              (link-string-beginning)
-                              (link-string-end)
-                              (key-end)
-                              (key-beginning))
+                            (link-string-beginning)
+                            (link-string-end)
+                            (key-end)
+                            (key-beginning))
 
+                     (save-excursion
+                       (goto-char (org-element-property :begin object))
+                       (search-forward link-string nil nil 1)
+                       (setq link-string-beginning (match-beginning 0))
+                       (setq link-string-end (match-end 0)))
+
+                       ;; We set the reftex-default-bibliography
+                       ;; here. it should be a local variable only in
+                       ;; the current buffer. We need this for using
+                       ;; reftex to do citations.
+                       (set (make-local-variable 'reftex-default-bibliography)
+                            (split-string (org-element-property :path object) ","))
+
+                       ;; now if we have comma separated bibliographies
+                       ;; we find the one clicked on. we want to
+                       ;; search forward to next comma from point
                        (save-excursion
-                         (goto-char (org-element-property :begin object))
-                         (search-forward link-string nil nil 1)
-                         (setq link-string-beginning (match-beginning 0))
-                         (setq link-string-end (match-end 0)))
+                         (if (search-forward "," link-string-end 1 1)
+                             (setq key-end (- (match-end 0) 1)) ; we found a match
+                           (setq key-end (point)))) ; no comma found so take the point
+                       ;; and backward to previous comma from point
+                       (save-excursion
+                         (if (search-backward "," link-string-beginning 1 1)
+                             (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
+                           (setq key-beginning (point)))) ; no match found
+                       ;; save the key we clicked on.
+                       (setq bibfile (org-ref-strip-string (buffer-substring key-beginning key-end)))
+                       (find-file bibfile))) ; open file on click
 
-                         ;; We set the reftex-default-bibliography
-                         ;; here. it should be a local variable only in
-                         ;; the current buffer. We need this for using
-                         ;; reftex to do citations.
-                         (set (make-local-variable 'reftex-default-bibliography)
-                              (split-string (org-element-property :path object) ","))
+                     ;; formatting code
+                   (lambda (keyword desc format)
+                     (cond
+                      ((eq format 'org) (org-ref-get-org-bibliography))
+                      ((eq format 'ascii) (org-ref-get-ascii-bibliography))
+                      ((eq format 'html) (org-ref-get-html-bibliography))
+                      ((eq format 'latex)
+                       ;; write out the latex bibliography command
 
-                         ;; now if we have comma separated bibliographies
-                         ;; we find the one clicked on. we want to
-                         ;; search forward to next comma from point
-                         (save-excursion
-                           (if (search-forward "," link-string-end 1 1)
-                               (setq key-end (- (match-end 0) 1)) ; we found a match
-                             (setq key-end (point)))) ; no comma found so take the point
-                         ;; and backward to previous comma from point
-                         (save-excursion
-                           (if (search-backward "," link-string-beginning 1 1)
-                               (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
-                             (setq key-beginning (point)))) ; no match found
-                         ;; save the key we clicked on.
-                         (setq bibfile (org-ref-strip-string (buffer-substring key-beginning key-end)))
-                         (find-file bibfile))) ; open file on click
+;                      (format "{\\setbox0\\vbox{\\bibliography{%s}}}"
+;                              (replace-regexp-in-string  "\\.bib" "" (mapconcat 'identity
+;                                                                                (mapcar 'expand-file-name
+;                                                                                        (split-string keyword ","))
+;                                                                                ",")))
 
-                       ;; formatting code
-                     (lambda (keyword desc format)
-                       (cond
-                        ((eq format 'org) (org-ref-get-org-bibliography))
-                        ((eq format 'ascii) (org-ref-get-ascii-bibliography))
-                        ((eq format 'html) (org-ref-get-html-bibliography))
-                        ((eq format 'latex)
-                         ;; write out the latex bibliography command
+                       (format "\\nobibliography{%s}"
+                               (replace-regexp-in-string  "\\.bib" "" (mapconcat 'identity
+                                                                                 (mapcar 'expand-file-name
+                                                                                         (split-string keyword ","))
+                                                                                 ",")))
 
-  ;                      (format "{\\setbox0\\vbox{\\bibliography{%s}}}"
-  ;                              (replace-regexp-in-string  "\\.bib" "" (mapconcat 'identity
-  ;                                                                                (mapcar 'expand-file-name
-  ;                                                                                        (split-string keyword ","))
-  ;                                                                                ",")))
-
-                         (format "\\nobibliography{%s}"
-                                 (replace-regexp-in-string  "\\.bib" "" (mapconcat 'identity
-                                                                                   (mapcar 'expand-file-name
-                                                                                           (split-string keyword ","))
-                                                                                   ",")))
-
-                         ))))
+                       ))))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp :tangle org-ref.el
@@ -967,63 +966,63 @@ It would be nice
 ** addbibresource
 This is apparently used for biblatex.
 #+BEGIN_SRC emacs-lisp :tangle org-ref.el
-  (defvar reftex-default-addbibresource nil
-    "Buffer local variable which determines which file reftex uses
-  for citations.")
+(defvar reftex-default-addbibresource nil
+  "Buffer local variable which determines which file reftex uses
+for citations.")
 
-  (org-add-link-type "addbibresource"
-                     ;; this code is run on clicking. The addbibresource
-                     ;; may contain multiple files. this code finds the
-                     ;; one you clicked on and opens it.
-                     (lambda (link-string)
-                         ;; get link-string boundaries
-                         ;; we have to go to the beginning of the line, and then search forward
+(org-add-link-type "addbibresource"
+                   ;; this code is run on clicking. The addbibresource
+                   ;; may contain multiple files. this code finds the
+                   ;; one you clicked on and opens it.
+                   (lambda (link-string)
+                       ;; get link-string boundaries
+                       ;; we have to go to the beginning of the line, and then search forward
 
-                       (let* ((bibfile)
-                              ;; object is the link you clicked on
-                              (object (org-element-context))
+                     (let* ((bibfile)
+                            ;; object is the link you clicked on
+                            (object (org-element-context))
 
-                              (link-string-beginning)
-                              (link-string-end)
-                              (key-end)
-                              (key-beginning))
+                            (link-string-beginning)
+                            (link-string-end)
+                            (key-end)
+                            (key-beginning))
 
+                     (save-excursion
+                       (goto-char (org-element-property :begin object))
+                       (search-forward link-string nil nil 1)
+                       (setq link-string-beginning (match-beginning 0))
+                       (setq link-string-end (match-end 0)))
+
+                       ;; We set the reftex-default-addbibresource
+                       ;; here. it should be a local variable only in
+                       ;; the current buffer. We need this for using
+                       ;; reftex to do citations.
+                       (set (make-local-variable 'reftex-default-addbibresource)
+                            (split-string (org-element-property :path object) ","))
+
+                       ;; now if we have comma separated bibliographies
+                       ;; we find the one clicked on. we want to
+                       ;; search forward to next comma from point
                        (save-excursion
-                         (goto-char (org-element-property :begin object))
-                         (search-forward link-string nil nil 1)
-                         (setq link-string-beginning (match-beginning 0))
-                         (setq link-string-end (match-end 0)))
+                         (if (search-forward "," link-string-end 1 1)
+                             (setq key-end (- (match-end 0) 1)) ; we found a match
+                           (setq key-end (point)))) ; no comma found so take the point
+                       ;; and backward to previous comma from point
+                       (save-excursion
+                         (if (search-backward "," link-string-beginning 1 1)
+                             (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
+                           (setq key-beginning (point)))) ; no match found
+                       ;; save the key we clicked on.
+                       (setq bibfile (org-ref-strip-string (buffer-substring key-beginning key-end)))
+                       (find-file bibfile))) ; open file on click
 
-                         ;; We set the reftex-default-addbibresource
-                         ;; here. it should be a local variable only in
-                         ;; the current buffer. We need this for using
-                         ;; reftex to do citations.
-                         (set (make-local-variable 'reftex-default-addbibresource)
-                              (split-string (org-element-property :path object) ","))
-
-                         ;; now if we have comma separated bibliographies
-                         ;; we find the one clicked on. we want to
-                         ;; search forward to next comma from point
-                         (save-excursion
-                           (if (search-forward "," link-string-end 1 1)
-                               (setq key-end (- (match-end 0) 1)) ; we found a match
-                             (setq key-end (point)))) ; no comma found so take the point
-                         ;; and backward to previous comma from point
-                         (save-excursion
-                           (if (search-backward "," link-string-beginning 1 1)
-                               (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
-                             (setq key-beginning (point)))) ; no match found
-                         ;; save the key we clicked on.
-                         (setq bibfile (org-ref-strip-string (buffer-substring key-beginning key-end)))
-                         (find-file bibfile))) ; open file on click
-
-                       ;; formatting code
-                     (lambda (keyword desc format)
-                       (cond
-                        ((eq format 'html) (format "")); no output for html
-                        ((eq format 'latex)
-                           ;; write out the latex addbibresource command
-                         (format "\\addbibresource{%s}" keyword)))))
+                     ;; formatting code
+                   (lambda (keyword desc format)
+                     (cond
+                      ((eq format 'html) (format "")); no output for html
+                      ((eq format 'latex)
+                         ;; write out the latex addbibresource command
+                       (format "\\addbibresource{%s}" keyword)))))
 #+END_SRC
 
 ** List of Figures
@@ -1640,53 +1639,53 @@ This is the main reason this library exists. We want the following behavior. A c
 The first thing we need is to get the bibtex key we clicked on.
 
 #+BEGIN_SRC emacs-lisp  :tangle org-ref.el
-  (defun org-ref-get-bibtex-key-under-cursor ()
-    "returns key under the bibtex cursor. We search forward from
-  point to get a comma, or the end of the link, and then backwards
-  to get a comma, or the beginning of the link. that delimits the
-  keyword we clicked on. We also strip the text properties."
-    (let* ((object (org-element-context))
-           (link-string (org-element-property :path object)))
-      ;; you may click on the part before the citations. here we make
-      ;; sure to move to the beginning so you get the first citation.
-      (let ((cp (point)))
-        (goto-char (org-element-property :begin object))
-        (search-forward link-string (org-element-property :end object))
-        (goto-char (match-beginning 0))
-        ;; check if we clicked before the path and move as needed.
-        (unless (< cp (point))
-          (goto-char cp)))
+(defun org-ref-get-bibtex-key-under-cursor ()
+  "returns key under the bibtex cursor. We search forward from
+point to get a comma, or the end of the link, and then backwards
+to get a comma, or the beginning of the link. that delimits the
+keyword we clicked on. We also strip the text properties."
+  (let* ((object (org-element-context))
+         (link-string (org-element-property :path object)))
+    ;; you may click on the part before the citations. here we make
+    ;; sure to move to the beginning so you get the first citation.
+    (let ((cp (point)))
+      (goto-char (org-element-property :begin object))
+      (search-forward link-string (org-element-property :end object))
+      (goto-char (match-beginning 0))
+      ;; check if we clicked before the path and move as needed.
+      (unless (< cp (point))
+        (goto-char cp)))
 
-      (if (not (org-element-property :contents-begin object))
-          ;; this means no description in the link
-           (let ((link-string-end)
-                (link-string-beginning)
-                (key-end)
-                (key-beginning)
-                (bibtex-key))
-            ;; we need the link path start and end
-            (save-excursion
-              (goto-char (org-element-property :begin object))
-              (search-forward link-string nil nil 1)
-              (setq link-string-beginning (match-beginning 0))
-              (setq link-string-end (match-end 0)))
+    (if (not (org-element-property :contents-begin object))
+        ;; this means no description in the link
+         (let ((link-string-end)
+              (link-string-beginning)
+              (key-end)
+              (key-beginning)
+              (bibtex-key))
+          ;; we need the link path start and end
+          (save-excursion
+            (goto-char (org-element-property :begin object))
+            (search-forward link-string nil nil 1)
+            (setq link-string-beginning (match-beginning 0))
+            (setq link-string-end (match-end 0)))
 
-            ;; The key is the text between commas, or the link boundaries
-            (save-excursion
-              (if (search-forward "," link-string-end t 1)
-                  (setq key-end (- (match-end 0) 1)) ; we found a match
-                (setq key-end link-string-end))) ; no comma found so take the end
-            ;; and backward to previous comma from point which defines the start character
-            (save-excursion
-              (if (search-backward "," link-string-beginning 1 1)
-                  (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
-                (setq key-beginning link-string-beginning))) ; no match found
-            ;; save the key we clicked on.
-            (setq bibtex-key (org-ref-strip-string (buffer-substring key-beginning key-end)))
-            (set-text-properties 0 (length bibtex-key) nil bibtex-key)
-            bibtex-key)
-        ;; link with description. assume only one key
-        link-string)))
+          ;; The key is the text between commas, or the link boundaries
+          (save-excursion
+            (if (search-forward "," link-string-end t 1)
+                (setq key-end (- (match-end 0) 1)) ; we found a match
+              (setq key-end link-string-end))) ; no comma found so take the end
+          ;; and backward to previous comma from point which defines the start character
+          (save-excursion
+            (if (search-backward "," link-string-beginning 1 1)
+                (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
+              (setq key-beginning link-string-beginning))) ; no match found
+          ;; save the key we clicked on.
+          (setq bibtex-key (org-ref-strip-string (buffer-substring key-beginning key-end)))
+          (set-text-properties 0 (length bibtex-key) nil bibtex-key)
+          bibtex-key)
+      ;; link with description. assume only one key
+      link-string)))
 #+END_SRC
 
 We also need to find which bibliography file that key is in. For that, we need to know which bibliography files are referred to in the file. If none are specified with a bibliography link, we use the default bibliography. This function searches for a bibliography link, and then the LaTeX bibliography link. We also consider the addbibresource link which is used with biblatex.
@@ -2169,48 +2168,48 @@ We will want to generate formatting functions for each citation type. The reason
 We create the links by mapping the function onto the list of defined link types.
 
 #+BEGIN_SRC emacs-lisp :tangle org-ref.el
-  (defun org-ref-format-citation-description (desc)
-    "Return formatted citation description.  If the cite link has a
-  description, it is optional text for the citation command. You
-  can specify pre and post text by separating these with ::, for
-  example [[cite:key][pre text::post text]]."
-    (let ((results))
-      (cond
-       ((string-match "::" desc)
-        (format "[%s][%s]" (car (setq results (split-string desc "::"))) (cadr results)))
-       (t (format "[%s]" desc)))))
+(defun org-ref-format-citation-description (desc)
+  "Return formatted citation description.  If the cite link has a
+description, it is optional text for the citation command. You
+can specify pre and post text by separating these with ::, for
+example [[cite:key][pre text::post text]]."
+  (let ((results))
+    (cond
+     ((string-match "::" desc)
+      (format "[%s][%s]" (car (setq results (split-string desc "::"))) (cadr results)))
+     (t (format "[%s]" desc)))))
 
-  (defun org-ref-define-citation-link (type &optional key)
-    "Add a citation link of TYPE for org-ref.
-  With optional KEY, set the reftex binding. For example:
-  (org-ref-define-citation-link \"citez\" ?z) will create a new citez link, with reftex key of z,
-  and the completion function."
-    (interactive "sCitation Type: \ncKey: ")
+(defun org-ref-define-citation-link (type &optional key)
+  "Add a citation link of TYPE for org-ref.
+With optional KEY, set the reftex binding. For example:
+(org-ref-define-citation-link \"citez\" ?z) will create a new citez link, with reftex key of z,
+and the completion function."
+  (interactive "sCitation Type: \ncKey: ")
 
-    ;; create the formatting function
-    (eval `(org-ref-make-format-function ,type))
+  ;; create the formatting function
+  (eval `(org-ref-make-format-function ,type))
 
-    (eval-expression
-     `(org-add-link-type
-       ,type
-       org-ref-cite-onclick-function
-       (quote ,(intern (format "org-ref-format-%s" type)))))
+  (eval-expression
+   `(org-add-link-type
+     ,type
+     org-ref-cite-onclick-function
+     (quote ,(intern (format "org-ref-format-%s" type)))))
 
-    ;; create the completion function
-    (eval `(org-ref-make-completion-function ,type))
+  ;; create the completion function
+  (eval `(org-ref-make-completion-function ,type))
 
-    ;; store new type so it works with adding citations, which checks
-    ;; for existence in this list
-    (add-to-list 'org-ref-cite-types type)
+  ;; store new type so it works with adding citations, which checks
+  ;; for existence in this list
+  (add-to-list 'org-ref-cite-types type)
 
-    ;; and finally if a key is specified, we modify the reftex menu
-    (when key
-      (setf (nth 2 (assoc 'org reftex-cite-format-builtin))
-            (append (nth 2 (assoc 'org reftex-cite-format-builtin))
-                    `((,key  . ,(concat type ":%l")))))))
+  ;; and finally if a key is specified, we modify the reftex menu
+  (when key
+    (setf (nth 2 (assoc 'org reftex-cite-format-builtin))
+          (append (nth 2 (assoc 'org reftex-cite-format-builtin))
+                  `((,key  . ,(concat type ":%l")))))))
 
-  ;; create all the link types and their completion functions
-  (mapc 'org-ref-define-citation-link org-ref-cite-types)
+;; create all the link types and their completion functions
+(mapc 'org-ref-define-citation-link org-ref-cite-types)
 #+END_SRC
 
 #+RESULTS:
@@ -3269,146 +3268,146 @@ Sometimes it may be helpful to manually change the order of citations. These fun
 To get a lighter weight message about the label, ref and cite links, we define a function that gives us the minibuffer message, without the menu. We run this in an idle timer.
 
 #+BEGIN_SRC emacs-lisp :tangle org-ref.el
-  (defun org-ref-get-label-context (label)
-    "Return a string of context around a label."
-    (save-excursion
-      (catch 'result
-        (goto-char (point-min))
-        (when (re-search-forward
-               (format "label:%s\\b" label) nil t)
-          (throw 'result (buffer-substring
-                          (progn
-                            (previous-line)
-                            (beginning-of-line)
-                            (point))
-                          (progn
-                            (forward-line 4)
-                            (point)))))
+(defun org-ref-get-label-context (label)
+  "Return a string of context around a label."
+  (save-excursion
+    (catch 'result
+      (goto-char (point-min))
+      (when (re-search-forward
+             (format "label:%s\\b" label) nil t)
+        (throw 'result (buffer-substring
+                        (progn
+                          (previous-line)
+                          (beginning-of-line)
+                          (point))
+                        (progn
+                          (forward-line 4)
+                          (point)))))
 
-        (goto-char (point-min))
-        (when (re-search-forward
-               (format "\\label{%s}" label) nil t)
-          (throw 'result (buffer-substring
-                          (progn
-                            (previous-line)
-                            (beginning-of-line)
-                            (point))
-                          (progn
-                            (forward-line 4)
-                            (point)))))
+      (goto-char (point-min))
+      (when (re-search-forward
+             (format "\\label{%s}" label) nil t)
+        (throw 'result (buffer-substring
+                        (progn
+                          (previous-line)
+                          (beginning-of-line)
+                          (point))
+                        (progn
+                          (forward-line 4)
+                          (point)))))
 
-        (goto-char (point-min))
-        (when (re-search-forward
-               (format "^#\\+label:\\s-*\\(%s\\)\\b" label) nil t)
-          (throw 'result (buffer-substring
-                          (progn
-                            (previous-line)
-                            (beginning-of-line)
-                            (point))
-                          (progn
-                            (forward-line 4)
-                            (point)))))
+      (goto-char (point-min))
+      (when (re-search-forward
+             (format "^#\\+label:\\s-*\\(%s\\)\\b" label) nil t)
+        (throw 'result (buffer-substring
+                        (progn
+                          (previous-line)
+                          (beginning-of-line)
+                          (point))
+                        (progn
+                          (forward-line 4)
+                          (point)))))
 
-        (goto-char (point-min))
-        (when (re-search-forward
-               (format "^#\\+tblname:\\s-*\\(%s\\)\\b" label) nil t)
-          (throw 'result (buffer-substring
-                          (progn
-                            (previous-line)
-                            (beginning-of-line)
-                            (point))
-                          (progn
-                            (forward-line 4)
-                            (point)))))
-        (throw 'result "!!! NO CONTEXT FOUND !!!"))))
+      (goto-char (point-min))
+      (when (re-search-forward
+             (format "^#\\+tblname:\\s-*\\(%s\\)\\b" label) nil t)
+        (throw 'result (buffer-substring
+                        (progn
+                          (previous-line)
+                          (beginning-of-line)
+                          (point))
+                        (progn
+                          (forward-line 4)
+                          (point)))))
+      (throw 'result "!!! NO CONTEXT FOUND !!!"))))
 
 
-  (defun org-ref-link-message ()
-    "Print a minibuffer message about the link that point is on."
-    (interactive)
-    (when (eq major-mode 'org-mode)
-      (let* ((object (org-element-context))
-             (type (org-element-property :type object)))
-        (save-excursion
-          (cond
-           ;; cite links
-           ((-contains? org-ref-cite-types type)
-            (message (org-ref-get-citation-string-at-point)))
+(defun org-ref-link-message ()
+  "Print a minibuffer message about the link that point is on."
+  (interactive)
+  (when (eq major-mode 'org-mode)
+    (let* ((object (org-element-context))
+           (type (org-element-property :type object)))
+      (save-excursion
+        (cond
+         ;; cite links
+         ((-contains? org-ref-cite-types type)
+          (message (org-ref-get-citation-string-at-point)))
 
-           ;; message some context about the label we are referring to
-           ((string= type "ref")
-            (message "%scount: %s"
-                     (org-ref-get-label-context
-                      (org-element-property :path object))
-                     (org-ref-count-labels
-                          (org-element-property :path object))))
+         ;; message some context about the label we are referring to
+         ((string= type "ref")
+          (message "%scount: %s"
+                   (org-ref-get-label-context
+                    (org-element-property :path object))
+                   (org-ref-count-labels
+                        (org-element-property :path object))))
 
-           ((string= type "eqref")
-            (message "%scount: %s"
-                     (org-ref-get-label-context
-                      (org-element-property :path object))
-                     (org-ref-count-labels
-                          (org-element-property :path object))))
+         ((string= type "eqref")
+          (message "%scount: %s"
+                   (org-ref-get-label-context
+                    (org-element-property :path object))
+                   (org-ref-count-labels
+                        (org-element-property :path object))))
 
-           ;; message the count
-           ((string= type "label")
-            (let ((count (org-ref-count-labels
-                          (org-element-property :path object))))
-              ;; get plurality on occurrence correct
-              (message (concat
-                        (number-to-string count)
-                        " occurence"
-                        (when (or (= count 0)
-                                  (> count 1))
-                          "s")))))
+         ;; message the count
+         ((string= type "label")
+          (let ((count (org-ref-count-labels
+                        (org-element-property :path object))))
+            ;; get plurality on occurrence correct
+            (message (concat
+                      (number-to-string count)
+                      " occurence"
+                      (when (or (= count 0)
+                                (> count 1))
+                        "s")))))
 
-           ((string= type "custom-id")
+         ((string= type "custom-id")
+          (save-excursion
+            (org-open-link-from-string
+             (format "[[#%s]]" (org-element-property :path object)))
+            (message "%s" (org-get-heading))))
+
+         ;; check if the bibliography files exist.
+         ((string= type "bibliography")
+          (let* ((bibfile)
+                 ;; object is the link you clicked on
+                 (object (org-element-context))
+                 (link-string (org-element-property :path object))
+                 (link-string-beginning)
+                 (link-string-end)
+                 (key-end)
+                 (key-beginning))
             (save-excursion
-              (org-open-link-from-string
-               (format "[[#%s]]" (org-element-property :path object)))
-              (message "%s" (org-get-heading))))
+              (goto-char (org-element-property :begin object))
+              (search-forward link-string nil nil 1)
+              (setq link-string-beginning (match-beginning 0))
+              (setq link-string-end (match-end 0)))
 
-           ;; check if the bibliography files exist.
-           ((string= type "bibliography")
-            (let* ((bibfile)
-                   ;; object is the link you clicked on
-                   (object (org-element-context))
-                   (link-string (org-element-property :path object))
-                   (link-string-beginning)
-                   (link-string-end)
-                   (key-end)
-                   (key-beginning))
-              (save-excursion
-                (goto-char (org-element-property :begin object))
-                (search-forward link-string nil nil 1)
-                (setq link-string-beginning (match-beginning 0))
-                (setq link-string-end (match-end 0)))
+             ;; make sure we are in link and not before the :
+            (when (> link-string-beginning (point))
+              (goto-char link-string-beginning))
 
-               ;; make sure we are in link and not before the :
-              (when (> link-string-beginning (point))
-                (goto-char link-string-beginning))
+            ;; now if we have comma separated bibliographies
+            ;; we find the one clicked on. we want to
+            ;; search forward to next comma from point
+            (save-excursion
+              (if (search-forward "," link-string-end 1 1)
+                  (setq key-end (- (match-end 0) 1)) ; we found a match
+                (setq key-end (point)))) ; no comma found so take the point
 
-              ;; now if we have comma separated bibliographies
-              ;; we find the one clicked on. we want to
-              ;; search forward to next comma from point
-              (save-excursion
-                (if (search-forward "," link-string-end 1 1)
-                    (setq key-end (- (match-end 0) 1)) ; we found a match
-                  (setq key-end (point)))) ; no comma found so take the point
-
-              ;; and backward to previous comma from point
-              (save-excursion
-                (if (search-backward "," link-string-beginning 1 1)
-                    (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
-                  (setq key-beginning (point)))) ; no match found
-              ;; save the key we clicked on.
-              (setq bibfile
-                    (org-ref-strip-string
-                     (buffer-substring key-beginning key-end)))
-              (if (file-exists-p bibfile)
-                  (message "%s exists." bibfile)
-                (message "!!! %s NOT FOUND !!!" bibfile))))
-           )))))
+            ;; and backward to previous comma from point
+            (save-excursion
+              (if (search-backward "," link-string-beginning 1 1)
+                  (setq key-beginning (+ (match-beginning 0) 1)) ; we found a match
+                (setq key-beginning (point)))) ; no match found
+            ;; save the key we clicked on.
+            (setq bibfile
+                  (org-ref-strip-string
+                   (buffer-substring key-beginning key-end)))
+            (if (file-exists-p bibfile)
+                (message "%s exists." bibfile)
+              (message "!!! %s NOT FOUND !!!" bibfile))))
+         )))))
 #+END_SRC
 
 * Aliases
